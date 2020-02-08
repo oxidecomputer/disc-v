@@ -1,6 +1,6 @@
 [package]
-name = "riscv-disasm"
-version = "0.1.0"
+name = "disc-v"
+version = "0.1.1"
 authors = ["Wladimir J. van der Laan <laanwj@gmail.com>"]
 
 [dependencies]

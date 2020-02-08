@@ -1060,101 +1060,27 @@ fn check_constraints(dec: &rv_decode, constraint: &[rvc_constraint]) -> bool {
     let rd = dec.rd;
     let rs1 = dec.rs1;
     let rs2 = dec.rs2;
-    for c in constraint {
-        match c {
-            rvc_constraint::rd_eq_ra => {
-                if !(rd == 1) {
-                    return false;
-                }
-            }
-            rvc_constraint::rd_eq_x0 => {
-                if !(rd == 0) {
-                    return false;
-                }
-            }
-            rvc_constraint::rs1_eq_x0 => {
-                if !(rs1 == 0) {
-                    return false;
-                }
-            }
-            rvc_constraint::rs2_eq_x0 => {
-                if !(rs2 == 0) {
-                    return false;
-                }
-            }
-            rvc_constraint::rs2_eq_rs1 => {
-                if !(rs2 == rs1) {
-                    return false;
-                }
-            }
-            rvc_constraint::rs1_eq_ra => {
-                if !(rs1 == 1) {
-                    return false;
-                }
-            }
-            rvc_constraint::imm_eq_zero => {
-                if !(imm == 0) {
-                    return false;
-                }
-            }
-            rvc_constraint::imm_eq_n1 => {
-                if !(imm == -1) {
-                    return false;
-                }
-            }
-            rvc_constraint::imm_eq_p1 => {
-                if !(imm == 1) {
-                    return false;
-                }
-            }
-            rvc_constraint::csr_eq_0x001 => {
-                if !(imm == 0x001) {
-                    return false;
-                }
-            }
-            rvc_constraint::csr_eq_0x002 => {
-                if !(imm == 0x002) {
-                    return false;
-                }
-            }
-            rvc_constraint::csr_eq_0x003 => {
-                if !(imm == 0x003) {
-                    return false;
-                }
-            }
-            rvc_constraint::csr_eq_0xc00 => {
-                if !(imm == 0xc00) {
-                    return false;
-                }
-            }
-            rvc_constraint::csr_eq_0xc01 => {
-                if !(imm == 0xc01) {
-                    return false;
-                }
-            }
-            rvc_constraint::csr_eq_0xc02 => {
-                if !(imm == 0xc02) {
-                    return false;
-                }
-            }
-            rvc_constraint::csr_eq_0xc80 => {
-                if !(imm == 0xc80) {
-                    return false;
-                }
-            }
-            rvc_constraint::csr_eq_0xc81 => {
-                if !(imm == 0xc81) {
-                    return false;
-                }
-            }
-            rvc_constraint::csr_eq_0xc82 => {
-                if !(imm == 0xc82) {
-                    return false;
-                }
-            }
-        }
-    }
-    return true;
+    constraint.iter().all(|c| match c {
+        rvc_constraint::never => false,
+        rvc_constraint::rd_eq_ra => rd == 1,
+        rvc_constraint::rd_eq_x0 => rd == 0,
+        rvc_constraint::rs1_eq_x0 => rs1 == 0,
+        rvc_constraint::rs2_eq_x0 => rs2 == 0,
+        rvc_constraint::rs2_eq_rs1 => rs2 == rs1,
+        rvc_constraint::rs1_eq_ra => rs1 == 1,
+        rvc_constraint::imm_eq_zero => imm == 0,
+        rvc_constraint::imm_eq_n1 => imm == -1,
+        rvc_constraint::imm_eq_p1 => imm == 1,
+        rvc_constraint::csr_eq_0x001 => imm == 0x001,
+        rvc_constraint::csr_eq_0x002 => imm == 0x002,
+        rvc_constraint::csr_eq_0x003 => imm == 0x003,
+        rvc_constraint::csr_eq_0xc00 => imm == 0xc00,
+        rvc_constraint::csr_eq_0xc01 => imm == 0xc01,
+        rvc_constraint::csr_eq_0xc02 => imm == 0xc02,
+        rvc_constraint::csr_eq_0xc80 => imm == 0xc80,
+        rvc_constraint::csr_eq_0xc81 => imm == 0xc81,
+        rvc_constraint::csr_eq_0xc82 => imm == 0xc82,
+    })
 }
 
 /* instruction length */

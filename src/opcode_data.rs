@@ -5,6 +5,7 @@ use types::*;
 const rv_fmt_none: &str = "O\t";
 const rv_fmt_rs1: &str = "O\t1";
 const rv_fmt_offset: &str = "O\to";
+const rv_fmt_offset_rs1: &str = "O\ti(1)";
 const rv_fmt_pred_succ: &str = "O\tp,s";
 const rv_fmt_rs1_rs2: &str = "O\t1,2";
 const rv_fmt_rd_imm: &str = "O\t0,i";
@@ -69,13 +70,13 @@ const rvcc_blez: &[rvcc] = &[rvcc::rs1_eq_x0];
 const rvcc_bgez: &[rvcc] = &[rvcc::rs2_eq_x0];
 const rvcc_bltz: &[rvcc] = &[rvcc::rs2_eq_x0];
 const rvcc_bgtz: &[rvcc] = &[rvcc::rs1_eq_x0];
-const rvcc_ble: &[rvcc] = &[];
-const rvcc_bleu: &[rvcc] = &[];
-const rvcc_bgt: &[rvcc] = &[];
-const rvcc_bgtu: &[rvcc] = &[];
+const rvcc_ble: &[rvcc] = &[rvcc::never];
+const rvcc_bleu: &[rvcc] = &[rvcc::never];
+const rvcc_bgt: &[rvcc] = &[rvcc::never];
+const rvcc_bgtu: &[rvcc] = &[rvcc::never];
 const rvcc_j: &[rvcc] = &[rvcc::rd_eq_x0];
 const rvcc_ret: &[rvcc] = &[rvcc::rd_eq_x0, rvcc::rs1_eq_ra];
-const rvcc_jr: &[rvcc] = &[rvcc::rd_eq_x0, rvcc::imm_eq_zero];
+const rvcc_jr: &[rvcc] = &[rvcc::rd_eq_x0];
 const rvcc_rdcycle: &[rvcc] = &[rvcc::rs1_eq_x0, rvcc::csr_eq_0xc00];
 const rvcc_rdtime: &[rvcc] = &[rvcc::rs1_eq_x0, rvcc::csr_eq_0xc01];
 const rvcc_rdinstret: &[rvcc] = &[rvcc::rs1_eq_x0, rvcc::csr_eq_0xc02];
@@ -382,7 +383,7 @@ pub const opcode_data: &[rv_opcode_data] = &[
     rv_opcode_data {
         name: "jalr",
         codec: rv_codec::i,
-        format: rv_fmt_rd_rs1_offset,
+        format: rv_fmt_rd_offset_rs1,
         pseudo: rvcp_jalr,
         decomp_rv32: noop,
         decomp_rv64: noop,
@@ -3382,7 +3383,7 @@ pub const opcode_data: &[rv_opcode_data] = &[
     rv_opcode_data {
         name: "jr",
         codec: rv_codec::i,
-        format: rv_fmt_rs1,
+        format: rv_fmt_offset_rs1,
         pseudo: rvcp_none,
         decomp_rv32: noop,
         decomp_rv64: noop,

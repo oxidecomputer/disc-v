@@ -230,7 +230,18 @@ fn csr_name(csrno: i32) -> Option<&'static str> {
 /* format instruction */
 
 pub fn format_inst(tab: usize, dec: &rv_decode) -> String {
+    format_inst_opt(
+        tab,
+        dec,
+        &rv_options {
+            reg_nicknames: true,
+        },
+    )
+}
+
+pub fn format_inst_opt(tab: usize, dec: &rv_decode, options: &rv_options) -> String {
     let mut buf: String;
+    // XXX can this use format!("{:01$x}{???")
     match inst_length(dec.inst) {
         2 => {
             buf = format!("{:04x}              ", dec.inst);
@@ -251,23 +262,14 @@ pub fn format_inst(tab: usize, dec: &rv_decode) -> String {
             'O' => {
                 buf.push_str(opcode_data[dec.op as usize].name);
             }
-            '(' => {
-                buf.push('(');
-            }
-            ',' => {
-                buf.push(',');
-            }
-            ')' => {
-                buf.push(')');
-            }
             '0' => {
-                buf.push_str(rv_ireg_name_sym[dec.rd as usize]);
+                push_ireg(&mut buf, dec.rd, options);
             }
             '1' => {
-                buf.push_str(rv_ireg_name_sym[dec.rs1 as usize]);
+                push_ireg(&mut buf, dec.rs1, options);
             }
             '2' => {
-                buf.push_str(rv_ireg_name_sym[dec.rs2 as usize]);
+                push_ireg(&mut buf, dec.rs2, options);
             }
             '3' => {
                 buf.push_str(rv_freg_name_sym[dec.rd as usize]);
@@ -356,11 +358,22 @@ pub fn format_inst(tab: usize, dec: &rv_decode) -> String {
                     buf.push_str(".rl");
                 }
             }
+            ',' | '(' | ')' => {
+                buf.push(ch);
+            }
             _ => {}
         }
     }
 
     buf
+}
+
+fn push_ireg(buf: &mut String, ireg: u8, options: &rv_options) -> () {
+    if options.reg_nicknames {
+        buf.push_str(rv_ireg_name_sym[ireg as usize]);
+    } else {
+        buf.push_str(format!("x{}", ireg).as_str());
+    }
 }
 
 pub fn disasm_inst(isa: rv_isa, pc: u64, inst: rv_inst) -> String {
@@ -388,6 +401,10 @@ mod tests {
         ),
         (0x204002b7, "204002b7          lui           t0,541065216"),
         (0x13, "00000013          nop           "),
+        (0x8082, "8082              ret           "),
+        (0x00830067, "00830067          jr            8(t1)"),
+        (0x1141, "1141              addi          sp,sp,-16"),
+        (0x8302, "8302              jr            0(t1)"),
     ];
 
     #[test]

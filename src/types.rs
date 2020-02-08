@@ -106,6 +106,7 @@ pub enum rv_freg {
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum rvc_constraint {
+    never,
     rd_eq_ra,
     rd_eq_x0,
     rs1_eq_x0,
@@ -529,6 +530,12 @@ pub struct rv_decode {
     pub succ: u8,
     pub aq: bool,
     pub rl: bool,
+}
+
+#[derive(Debug, Clone)]
+#[allow(non_camel_case_types)]
+pub struct rv_options {
+    pub reg_nicknames: bool,
 }
 
 /* Internal representations of instructions */
