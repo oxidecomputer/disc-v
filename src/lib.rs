@@ -15,8 +15,8 @@ mod iterator;
 mod opcode_data;
 mod types;
 
-pub use disasm::{decode_inst, inst_length};
-pub use format::{disasm_inst, format_inst, format_inst_opt};
+pub use disasm::{decode_inst, decode_inst_bytes, inst_length, inst_length_first_byte};
+pub use format::{disasm_inst, disasm_inst_bytes, format_inst, format_inst_opt};
 pub use iterator::Disassembler;
 pub use types::{
   rv_codec, rv_decode, rv_fence, rv_freg, rv_ireg, rv_isa, rv_op, rv_options, rv_rm,

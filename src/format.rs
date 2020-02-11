@@ -1,6 +1,6 @@
 use std::num::Wrapping;
 
-use disasm::{decode_inst, inst_length};
+use disasm::{decode_inst, decode_inst_bytes, inst_length};
 use opcode_data::opcode_data;
 use types::*;
 
@@ -379,41 +379,74 @@ fn push_ireg(buf: &mut String, ireg: u8, options: &rv_options) -> () {
 pub fn disasm_inst(isa: rv_isa, pc: u64, inst: rv_inst) -> String {
     format_inst(32, &decode_inst(isa, pc, inst))
 }
+pub fn disasm_inst_bytes(isa: rv_isa, pc: u64, inst: &[u8]) -> Option<String> {
+    Some(format_inst(32, &decode_inst_bytes(isa, pc, inst)?))
+}
 
 #[cfg(test)]
 mod tests {
+    use iterator::Disassembler;
+
     use super::*;
 
-    const inst_arr: &[(u64, &'static str)] = &[
-        (0x0, "0000              illegal       "),
-        (0x1, "0001              nop           "),
-        (0xd, "000d              addi          zero,zero,3"),
-        (0x401, "0401              mv            s0,s0"),
-        (0x404, "0404              addi          s1,sp,512"),
-        (0x405, "0405              addi          s0,s0,1"),
+    const inst_arr: &[(&[u8], &'static str)] = &[
+        (&[0x00, 0x00], "0000              illegal       "),
+        (&[0x01, 0x00], "0001              nop           "),
+        (&[0x0d, 0x00], "000d              addi          zero,zero,3"),
+        (&[0x01, 0x04], "0401              mv            s0,s0"),
+        (&[0x04, 0x04], "0404              addi          s1,sp,512"),
+        (&[0x05, 0x04], "0405              addi          s0,s0,1"),
         (
-            0xf1402573,
+            &[0x73, 0x25, 0x40, 0xf1],
             "f1402573          csrrs         a0,mhartid,zero",
         ),
         (
-            0x597,
+            &[0x97, 0x05, 0x00, 0x00],
             "00000597          auipc         a1,0                            # 0x10088",
         ),
-        (0x204002b7, "204002b7          lui           t0,541065216"),
-        (0x13, "00000013          nop           "),
-        (0x8082, "8082              ret           "),
-        (0x00830067, "00830067          jr            8(t1)"),
-        (0x1141, "1141              addi          sp,sp,-16"),
-        (0x8302, "8302              jr            0(t1)"),
+        (
+            &[0xb7, 0x02, 0x40, 0x20],
+            "204002b7          lui           t0,541065216",
+        ),
+        (
+            &[0x13, 0x00, 0x00, 0x00],
+            "00000013          nop           ",
+        ),
+        (&[0x82, 0x80], "8082              ret           "),
+        (
+            &[0x67, 0x00, 0x83, 0x00],
+            "00830067          jr            8(t1)",
+        ),
+        (&[0x41, 0x11], "1141              addi          sp,sp,-16"),
+        (&[0x02, 0x83], "8302              jr            0(t1)"),
     ];
 
     #[test]
     fn basic_tests() {
         let mut pc: u64 = 0x10078;
-        for (inst, expected) in inst_arr {
-            let formatted = disasm_inst(rv_isa::rv64, pc, *inst);
+        for (ibytes, expected) in inst_arr {
+            let inst = ibytes
+                .iter()
+                .rev()
+                .fold(0_u64, |acc, bb| acc << 8 | *bb as u64);
+            let formatted = disasm_inst(rv_isa::rv64, pc, inst);
             assert_eq!(&formatted, expected);
-            pc = pc + inst_length(*inst) as u64;
+            pc = pc + inst_length(inst) as u64;
+        }
+    }
+
+    #[test]
+    fn iter_test() {
+        let mut data = vec![];
+        for i in inst_arr {
+            data.extend_from_slice(i.0);
+        }
+        let d = Disassembler::new(rv_isa::rv64, data.as_slice(), 0x10078);
+        let mut i = 0;
+        for decoded in d {
+            let formatted = format_inst(32, &decoded);
+            assert_eq!(&formatted, inst_arr[i].1);
+            i += 1;
         }
     }
 }

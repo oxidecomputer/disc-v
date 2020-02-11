@@ -518,6 +518,7 @@ impl rv_op {
 pub struct rv_decode {
     pub pc: u64,
     pub inst: u64,
+    pub len: usize,
     pub imm: i32,
     pub op: rv_op,
     pub codec: rv_codec,

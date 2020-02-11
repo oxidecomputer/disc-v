@@ -1,6 +1,4 @@
-use std::cmp;
-
-use disasm::{decode_inst, inst_length};
+use disasm::decode_inst_bytes;
 use types::*;
 
 #[derive(Debug, Clone)]
@@ -26,15 +24,13 @@ impl<'a> Iterator for Disassembler<'a> {
     type Item = rv_decode;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut inst =
-            (*self.slice.get(self.ptr)? as u64) | ((*self.slice.get(self.ptr + 1)? as u64) << 8);
-        let len = cmp::max(inst_length(inst), 2);
-        for x in 2..len {
-            inst |= (*self.slice.get(self.ptr + x)? as u64) << (x * 8);
+        let inst = self.slice.get(self.ptr..)?;
+        let decoded = decode_inst_bytes(self.isa, self.pc, inst);
+        if let Some(dec) = &decoded {
+            let len = dec.len;
+            self.ptr += len;
+            self.pc += len as u64;
         }
-        let decoded = Some(decode_inst(self.isa, self.pc, inst));
-        self.ptr += len;
-        self.pc += len as u64;
         decoded
     }
 }

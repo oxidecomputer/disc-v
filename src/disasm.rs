@@ -1085,6 +1085,10 @@ fn check_constraints(dec: &rv_decode, constraint: &[rvc_constraint]) -> bool {
 
 /* instruction length */
 
+pub fn inst_length_first_byte(inst: u8) -> usize {
+    inst_length(inst as u64)
+}
+
 pub fn inst_length(inst: rv_inst) -> usize {
     /* NOTE: supports maximum instruction size of 64-bits */
 
@@ -1161,12 +1165,31 @@ fn decompress_inst_rv128(dec: &mut rv_decode) {
 
 /* disassemble instruction */
 
+pub fn decode_inst_bytes(isa: rv_isa, pc: u64, inst: &[u8]) -> Option<rv_decode> {
+    let len = inst_length_first_byte(*inst.get(0)?);
+    if inst.len() < len {
+        None
+    } else {
+        let ii = inst
+            .iter()
+            .take(len)
+            .rev()
+            .fold(0_u64, |acc, bb| (acc << 8) | *bb as u64);
+        Some(decode_inst_internal(isa, pc, ii, len))
+    }
+}
+
 pub fn decode_inst(isa: rv_isa, pc: u64, inst: rv_inst) -> rv_decode {
+    decode_inst_internal(isa, pc, inst, inst_length(inst))
+}
+
+fn decode_inst_internal(isa: rv_isa, pc: u64, inst: rv_inst, len: usize) -> rv_decode {
     let mut dec: rv_decode = rv_decode {
         pc: pc,
         inst: inst,
+        len: len,
         imm: 0,
-        op: rv_op::illegal,
+        op: decode_inst_opcode(inst, isa),
         codec: rv_codec::illegal,
         rd: 0,
         rs1: 0,
@@ -1178,9 +1201,6 @@ pub fn decode_inst(isa: rv_isa, pc: u64, inst: rv_inst) -> rv_decode {
         aq: false,
         rl: false,
     };
-    dec.pc = pc;
-    dec.inst = inst;
-    dec.op = decode_inst_opcode(dec.inst, isa);
     decode_inst_operands(&mut dec);
     match isa {
         rv_isa::rv32 => decompress_inst_rv32(&mut dec),

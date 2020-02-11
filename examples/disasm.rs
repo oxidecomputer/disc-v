@@ -1,10 +1,10 @@
-extern crate riscv_disasm;
+extern crate disc_v;
 
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 
-use riscv_disasm::*;
+use disc_v::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
