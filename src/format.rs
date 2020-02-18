@@ -7,15 +7,16 @@ use types::*;
 /* register names */
 
 const rv_ireg_name_sym: &[&str] = &[
-    "zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "s1", "a0", "a1", "a2", "a3", "a4",
-    "a5", "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4",
-    "t5", "t6",
+    "zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "s1", "a0", "a1",
+    "a2", "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7",
+    "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6",
 ];
 
 const rv_freg_name_sym: &[&str] = &[
-    "ft0", "ft1", "ft2", "ft3", "ft4", "ft5", "ft6", "ft7", "fs0", "fs1", "fa0", "fa1", "fa2",
-    "fa3", "fa4", "fa5", "fa6", "fa7", "fs2", "fs3", "fs4", "fs5", "fs6", "fs7", "fs8", "fs9",
-    "fs10", "fs11", "ft8", "ft9", "ft10", "ft11",
+    "ft0", "ft1", "ft2", "ft3", "ft4", "ft5", "ft6", "ft7", "fs0", "fs1",
+    "fa0", "fa1", "fa2", "fa3", "fa4", "fa5", "fa6", "fa7", "fs2", "fs3",
+    "fs4", "fs5", "fs6", "fs7", "fs8", "fs9", "fs10", "fs11", "ft8", "ft9",
+    "ft10", "ft11",
 ];
 
 /* CSR names */
@@ -235,137 +236,196 @@ pub fn format_inst(tab: usize, dec: &rv_decode) -> String {
         dec,
         &rv_options {
             reg_nicknames: true,
+            resolve_offsets: false,
         },
     )
 }
 
-pub fn format_inst_opt(tab: usize, dec: &rv_decode, options: &rv_options) -> String {
+pub fn format_inst_opt(
+    tab: usize,
+    dec: &rv_decode,
+    options: &rv_options,
+) -> String {
     let mut buf: String;
-    // XXX can this use format!("{:01$x}{???")
-    match inst_length(dec.inst) {
-        2 => {
-            buf = format!("{:04x}              ", dec.inst);
-        }
-        4 => {
-            buf = format!("{:08x}          ", dec.inst);
-        }
-        6 => {
-            buf = format!("{:012x}      ", dec.inst);
-        }
-        _ => {
-            buf = format!("{:016x}  ", dec.inst);
-        }
-    };
+    let mut len = inst_length(dec.inst);
+    if len > 8 {
+        len = 8;
+    }
+    buf = format!(
+        "{:0width$x}{:space$}",
+        dec.inst,
+        "",
+        width = 2 * len,
+        space = 18 - 2 * len
+    );
 
     for ch in opcode_data[dec.op as usize].format.chars() {
         match ch {
-            'O' => {
-                buf.push_str(opcode_data[dec.op as usize].name);
-            }
-            '0' => {
-                push_ireg(&mut buf, dec.rd, options);
-            }
-            '1' => {
-                push_ireg(&mut buf, dec.rs1, options);
-            }
-            '2' => {
-                push_ireg(&mut buf, dec.rs2, options);
-            }
-            '3' => {
-                buf.push_str(rv_freg_name_sym[dec.rd as usize]);
-            }
-            '4' => {
-                buf.push_str(rv_freg_name_sym[dec.rs1 as usize]);
-            }
-            '5' => {
-                buf.push_str(rv_freg_name_sym[dec.rs2 as usize]);
-            }
-            '6' => {
-                buf.push_str(rv_freg_name_sym[dec.rs3 as usize]);
-            }
-            '7' => {
-                buf.push_str(&format!("{}", dec.rs1));
-            }
-            'i' => {
-                buf.push_str(&format!("{}", dec.imm));
-            }
-            'o' => {
-                buf.push_str(&format!("{}", dec.imm));
-                while buf.len() < tab * 2 {
-                    buf.push(' ');
-                }
-                buf.push_str(&format!(
-                    "# 0x{:x}",
-                    Wrapping(dec.pc) + Wrapping(dec.imm as u64)
-                ));
-            }
-            'c' => {
-                if let Some(name) = csr_name(dec.imm & 0xfff) {
-                    buf.push_str(name);
-                } else {
-                    buf.push_str(&format!("0x{:03x}", dec.imm & 0xfff));
-                }
-            }
-            'r' => buf.push_str(match dec.rm {
-                rv_rm::rne => "rne",
-                rv_rm::rtz => "rtz",
-                rv_rm::rdn => "rdn",
-                rv_rm::rup => "rup",
-                rv_rm::rmm => "rmm",
-                rv_rm::dyn => "dyn",
-                _ => "inv",
-            }),
-            'p' => {
-                if (dec.pred & rv_fence::i) != 0 {
-                    buf.push('i');
-                }
-                if (dec.pred & rv_fence::o) != 0 {
-                    buf.push('o');
-                }
-                if (dec.pred & rv_fence::r) != 0 {
-                    buf.push('r');
-                }
-                if (dec.pred & rv_fence::w) != 0 {
-                    buf.push('w');
-                }
-            }
-            's' => {
-                if (dec.succ & rv_fence::i) != 0 {
-                    buf.push('i');
-                }
-                if (dec.succ & rv_fence::o) != 0 {
-                    buf.push('o');
-                }
-                if (dec.succ & rv_fence::r) != 0 {
-                    buf.push('r');
-                }
-                if (dec.succ & rv_fence::w) != 0 {
-                    buf.push('w');
-                }
-            }
             '\t' => {
                 while buf.len() < tab {
                     buf.push(' ');
                 }
             }
-            'A' => {
-                if dec.aq {
-                    buf.push_str(".aq");
+            _ => {
+                format_component(&mut buf, ch, dec, options);
+                if ch == 'o' || ch == 'X' {
+                    buf.push_str(&format!(
+                        "{:space$}# 0x{:x}",
+                        "",
+                        Wrapping(dec.pc) + Wrapping(dec.imm as u64),
+                        space = tab * 2 - buf.len(),
+                    ));
                 }
             }
-            'R' => {
-                if dec.rl {
-                    buf.push_str(".rl");
-                }
-            }
-            ',' | '(' | ')' => {
-                buf.push(ch);
-            }
-            _ => {}
         }
     }
 
     buf
+}
+pub fn extract_inst(
+    dec: &rv_decode,
+    options: &rv_options,
+) -> (String, Option<String>) {
+    let mut op = String::new();
+    let mut args = String::new();
+    let mut buf = &mut op;
+
+    for ch in opcode_data[dec.op as usize].format.chars() {
+        match ch {
+            '\t' => {
+                buf = &mut args;
+            }
+            _ => format_component(buf, ch, dec, options),
+        }
+    }
+
+    (op, if args == "" { None } else { Some(args) })
+}
+
+fn format_component(
+    buf: &mut String,
+    ch: char,
+    dec: &rv_decode,
+    options: &rv_options,
+) {
+    match ch {
+        'O' => {
+            buf.push_str(opcode_data[dec.op as usize].name);
+        }
+        '0' => {
+            push_ireg(buf, dec.rd, options);
+        }
+        '1' => {
+            push_ireg(buf, dec.rs1, options);
+        }
+        '2' => {
+            push_ireg(buf, dec.rs2, options);
+        }
+        '3' => {
+            buf.push_str(rv_freg_name_sym[dec.rd as usize]);
+        }
+        '4' => {
+            buf.push_str(rv_freg_name_sym[dec.rs1 as usize]);
+        }
+        '5' => {
+            buf.push_str(rv_freg_name_sym[dec.rs2 as usize]);
+        }
+        '6' => {
+            buf.push_str(rv_freg_name_sym[dec.rs3 as usize]);
+        }
+        '7' => {
+            buf.push_str(&format!("{}", dec.rs1));
+        }
+        'i' => {
+            buf.push_str(&format!("{}", dec.imm));
+        }
+        'x' => {
+            buf.push_str(&format!("{:#x}", dec.imm));
+        }
+        'o' => {
+            if options.resolve_offsets {
+                buf.push_str(&format!(
+                    "{:x}",
+                    Wrapping(dec.pc) + Wrapping(dec.imm as u64)
+                ));
+            } else {
+                buf.push_str(&format!("{:x}", dec.imm));
+            }
+        }
+        'X' => {
+            if options.resolve_offsets {
+                buf.push_str(&format!(
+                    "{:#x}",
+                    Wrapping(dec.pc) + Wrapping(dec.imm as u64)
+                ));
+            } else {
+                buf.push_str(&format!("{:#x}", dec.imm));
+            }
+        }
+        'c' => {
+            if let Some(name) = csr_name(dec.imm & 0xfff) {
+                buf.push_str(name);
+            } else {
+                buf.push_str(&format!("0x{:03x}", dec.imm & 0xfff));
+            }
+        }
+        'r' => buf.push_str(match dec.rm {
+            rv_rm::rne => "rne",
+            rv_rm::rtz => "rtz",
+            rv_rm::rdn => "rdn",
+            rv_rm::rup => "rup",
+            rv_rm::rmm => "rmm",
+            rv_rm::dyn => "dyn",
+            _ => "inv",
+        }),
+        'p' => {
+            if (dec.pred & rv_fence::i) != 0 {
+                buf.push('i');
+            }
+            if (dec.pred & rv_fence::o) != 0 {
+                buf.push('o');
+            }
+            if (dec.pred & rv_fence::r) != 0 {
+                buf.push('r');
+            }
+            if (dec.pred & rv_fence::w) != 0 {
+                buf.push('w');
+            }
+        }
+        's' => {
+            if (dec.succ & rv_fence::i) != 0 {
+                buf.push('i');
+            }
+            if (dec.succ & rv_fence::o) != 0 {
+                buf.push('o');
+            }
+            if (dec.succ & rv_fence::r) != 0 {
+                buf.push('r');
+            }
+            if (dec.succ & rv_fence::w) != 0 {
+                buf.push('w');
+            }
+        }
+        'A' => {
+            if dec.aq {
+                buf.push_str(".aq");
+            }
+        }
+        'R' => {
+            if dec.rl {
+                buf.push_str(".rl");
+            }
+        }
+        ',' | '(' | ')' => {
+            buf.push(ch);
+        }
+        '\t' => {
+            panic!("needs to be handled by the caller");
+        }
+        _ => {
+            panic!("unexpected format character: '{}'", ch);
+        }
+    }
 }
 
 fn push_ireg(buf: &mut String, ireg: u8, options: &rv_options) -> () {
@@ -392,21 +452,21 @@ mod tests {
     const inst_arr: &[(&[u8], &'static str)] = &[
         (&[0x00, 0x00], "0000              illegal       "),
         (&[0x01, 0x00], "0001              nop           "),
-        (&[0x0d, 0x00], "000d              addi          zero,zero,3"),
+        (&[0x0d, 0x00], "000d              li            zero,3"),
         (&[0x01, 0x04], "0401              mv            s0,s0"),
         (&[0x04, 0x04], "0404              addi          s1,sp,512"),
         (&[0x05, 0x04], "0405              addi          s0,s0,1"),
         (
             &[0x73, 0x25, 0x40, 0xf1],
-            "f1402573          csrrs         a0,mhartid,zero",
+            "f1402573          csrr          a0,mhartid",
         ),
         (
             &[0x97, 0x05, 0x00, 0x00],
-            "00000597          auipc         a1,0                            # 0x10088",
+            "00000597          auipc         a1,0x0                          # 0x10088",
         ),
         (
             &[0xb7, 0x02, 0x40, 0x20],
-            "204002b7          lui           t0,541065216",
+            "204002b7          lui           t0,0x20400000",
         ),
         (
             &[0x13, 0x00, 0x00, 0x00],
@@ -419,6 +479,9 @@ mod tests {
         ),
         (&[0x41, 0x11], "1141              addi          sp,sp,-16"),
         (&[0x02, 0x83], "8302              jr            0(t1)"),
+        (&[0x13, 0x06, 0x40, 0x08], "08400613          li            a2,132"),
+        (&[0x73, 0x10, 0x01, 0x34],"34011073          csrw          mscratch,sp"),
+        (&[0xf3, 0x22, 0x00, 0x30], "300022f3          csrr          t0,mstatus"),
     ];
 
     #[test]

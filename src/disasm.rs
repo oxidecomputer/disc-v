@@ -195,7 +195,9 @@ fn decode_inst_opcode(inst: rv_inst, isa: rv_isa) -> rv_op {
                 4 => rv_op::fsq,
                 _ => rv_op::illegal,
             },
-            11 => match ((inst >> 24) & 0b11111000) | ((inst >> 12) & 0b00000111) {
+            11 => match ((inst >> 24) & 0b11111000)
+                | ((inst >> 12) & 0b00000111)
+            {
                 2 => rv_op::amoadd_w,
                 3 => rv_op::amoadd_d,
                 4 => rv_op::amoadd_q,
@@ -240,7 +242,9 @@ fn decode_inst_opcode(inst: rv_inst, isa: rv_isa) -> rv_op {
                 228 => rv_op::amomaxu_q,
                 _ => rv_op::illegal,
             },
-            12 => match ((inst >> 22) & 0b1111111000) | ((inst >> 12) & 0b0000000111) {
+            12 => match ((inst >> 22) & 0b1111111000)
+                | ((inst >> 12) & 0b0000000111)
+            {
                 0 => rv_op::add,
                 1 => rv_op::sll,
                 2 => rv_op::slt,
@@ -262,7 +266,9 @@ fn decode_inst_opcode(inst: rv_inst, isa: rv_isa) -> rv_op {
                 _ => rv_op::illegal,
             },
             13 => rv_op::lui,
-            14 => match ((inst >> 22) & 0b1111111000) | ((inst >> 12) & 0b0000000111) {
+            14 => match ((inst >> 22) & 0b1111111000)
+                | ((inst >> 12) & 0b0000000111)
+            {
                 0 => rv_op::addw,
                 1 => rv_op::sllw,
                 5 => rv_op::srlw,
@@ -432,30 +438,42 @@ fn decode_inst_opcode(inst: rv_inst, isa: rv_isa) -> rv_op {
                     3 => rv_op::fcvt_q_lu,
                     _ => rv_op::illegal,
                 },
-                112 => match ((inst >> 17) & 0b11111000) | ((inst >> 12) & 0b00000111) {
+                112 => match ((inst >> 17) & 0b11111000)
+                    | ((inst >> 12) & 0b00000111)
+                {
                     0 => rv_op::fmv_x_s,
                     1 => rv_op::fclass_s,
                     _ => rv_op::illegal,
                 },
-                113 => match ((inst >> 17) & 0b11111000) | ((inst >> 12) & 0b00000111) {
+                113 => match ((inst >> 17) & 0b11111000)
+                    | ((inst >> 12) & 0b00000111)
+                {
                     0 => rv_op::fmv_x_d,
                     1 => rv_op::fclass_d,
                     _ => rv_op::illegal,
                 },
-                115 => match ((inst >> 17) & 0b11111000) | ((inst >> 12) & 0b00000111) {
+                115 => match ((inst >> 17) & 0b11111000)
+                    | ((inst >> 12) & 0b00000111)
+                {
                     0 => rv_op::fmv_x_q,
                     1 => rv_op::fclass_q,
                     _ => rv_op::illegal,
                 },
-                120 => match ((inst >> 17) & 0b11111000) | ((inst >> 12) & 0b00000111) {
+                120 => match ((inst >> 17) & 0b11111000)
+                    | ((inst >> 12) & 0b00000111)
+                {
                     0 => rv_op::fmv_s_x,
                     _ => rv_op::illegal,
                 },
-                121 => match ((inst >> 17) & 0b11111000) | ((inst >> 12) & 0b00000111) {
+                121 => match ((inst >> 17) & 0b11111000)
+                    | ((inst >> 12) & 0b00000111)
+                {
                     0 => rv_op::fmv_d_x,
                     _ => rv_op::illegal,
                 },
-                123 => match ((inst >> 17) & 0b11111000) | ((inst >> 12) & 0b00000111) {
+                123 => match ((inst >> 17) & 0b11111000)
+                    | ((inst >> 12) & 0b00000111)
+                {
                     0 => rv_op::fmv_q_x,
                     _ => rv_op::illegal,
                 },
@@ -489,7 +507,9 @@ fn decode_inst_opcode(inst: rv_inst, isa: rv_isa) -> rv_op {
             },
             27 => rv_op::jal,
             28 => match (inst >> 12) & 0b111 {
-                0 => match ((inst >> 20) & 0b111111100000) | ((inst >> 7) & 0b000000011111) {
+                0 => match ((inst >> 20) & 0b111111100000)
+                    | ((inst >> 7) & 0b000000011111)
+                {
                     0 => match (inst >> 15) & 0b1111111111 {
                         0 => rv_op::ecall,
                         32 => rv_op::ebreak,
@@ -531,7 +551,9 @@ fn decode_inst_opcode(inst: rv_inst, isa: rv_isa) -> rv_op {
                 7 => rv_op::csrrci,
                 _ => rv_op::illegal,
             },
-            30 => match ((inst >> 22) & 0b1111111000) | ((inst >> 12) & 0b0000000111) {
+            30 => match ((inst >> 22) & 0b1111111000)
+                | ((inst >> 12) & 0b0000000111)
+            {
                 0 => rv_op::addd,
                 1 => rv_op::slld,
                 5 => rv_op::srld,
@@ -683,15 +705,21 @@ fn operand_cimmui(inst: rv_inst) -> i32 {
 }
 
 fn operand_cimmlwsp(inst: rv_inst) -> u32 {
-    (((inst << 51) >> 63) << 5 | ((inst << 57) >> 61) << 2 | ((inst << 60) >> 62) << 6) as u32
+    (((inst << 51) >> 63) << 5
+        | ((inst << 57) >> 61) << 2
+        | ((inst << 60) >> 62) << 6) as u32
 }
 
 fn operand_cimmldsp(inst: rv_inst) -> u32 {
-    (((inst << 51) >> 63) << 5 | ((inst << 57) >> 62) << 3 | ((inst << 59) >> 61) << 6) as u32
+    (((inst << 51) >> 63) << 5
+        | ((inst << 57) >> 62) << 3
+        | ((inst << 59) >> 61) << 6) as u32
 }
 
 fn operand_cimmlqsp(inst: rv_inst) -> u32 {
-    (((inst << 51) >> 63) << 5 | ((inst << 57) >> 63) << 4 | ((inst << 58) >> 60) << 6) as u32
+    (((inst << 51) >> 63) << 5
+        | ((inst << 57) >> 63) << 4
+        | ((inst << 58) >> 60) << 6) as u32
 }
 
 fn operand_cimm16sp(inst: rv_inst) -> i32 {
@@ -741,7 +769,9 @@ fn operand_cimm4spn(inst: rv_inst) -> u32 {
 }
 
 fn operand_cimmw(inst: rv_inst) -> u32 {
-    (((inst << 51) >> 61) << 3 | ((inst << 57) >> 63) << 2 | ((inst << 58) >> 63) << 6) as u32
+    (((inst << 51) >> 61) << 3
+        | ((inst << 57) >> 63) << 2
+        | ((inst << 58) >> 63) << 6) as u32
 }
 
 fn operand_cimmd(inst: rv_inst) -> u32 {
@@ -749,7 +779,9 @@ fn operand_cimmd(inst: rv_inst) -> u32 {
 }
 
 fn operand_cimmq(inst: rv_inst) -> u32 {
-    (((inst << 51) >> 62) << 4 | ((inst << 53) >> 63) << 8 | ((inst << 57) >> 62) << 6) as u32
+    (((inst << 51) >> 62) << 4
+        | ((inst << 53) >> 63) << 8
+        | ((inst << 57) >> 62) << 6) as u32
 }
 
 /* decode operands */
@@ -1062,7 +1094,7 @@ fn check_constraints(dec: &rv_decode, constraint: &[rvc_constraint]) -> bool {
     let rs2 = dec.rs2;
     constraint.iter().all(|c| match c {
         rvc_constraint::never => false,
-        rvc_constraint::rd_eq_ra => rd == 1,
+        //rvc_constraint::rd_eq_ra => rd == 1,
         rvc_constraint::rd_eq_x0 => rd == 0,
         rvc_constraint::rs1_eq_x0 => rs1 == 0,
         rvc_constraint::rs2_eq_x0 => rs2 == 0,
@@ -1118,6 +1150,7 @@ pub fn inst_length(inst: rv_inst) -> usize {
 fn decode_inst_lift_pseudo(dec: &mut rv_decode) {
     for comp_data in opcode_data[dec.op as usize].pseudo {
         if check_constraints(dec, comp_data.constraints) {
+            assert_ne!(dec.op, comp_data.op);
             dec.op = comp_data.op;
             dec.codec = opcode_data[dec.op as usize].codec;
             return;
@@ -1130,7 +1163,9 @@ fn decode_inst_lift_pseudo(dec: &mut rv_decode) {
 fn decompress_inst_rv32(dec: &mut rv_decode) {
     let decomp_op = opcode_data[dec.op as usize].decomp_rv32;
     if decomp_op != rv_op::illegal {
-        if (opcode_data[dec.op as usize].decomp_data & rvcd::imm_nz) != 0 && dec.imm == 0 {
+        if (opcode_data[dec.op as usize].decomp_data & rvcd::imm_nz) != 0
+            && dec.imm == 0
+        {
             dec.op = rv_op::illegal;
         } else {
             dec.op = decomp_op;
@@ -1142,7 +1177,9 @@ fn decompress_inst_rv32(dec: &mut rv_decode) {
 fn decompress_inst_rv64(dec: &mut rv_decode) {
     let decomp_op = opcode_data[dec.op as usize].decomp_rv64;
     if decomp_op != rv_op::illegal {
-        if (opcode_data[dec.op as usize].decomp_data & rvcd::imm_nz) != 0 && dec.imm == 0 {
+        if (opcode_data[dec.op as usize].decomp_data & rvcd::imm_nz) != 0
+            && dec.imm == 0
+        {
             dec.op = rv_op::illegal;
         } else {
             dec.op = decomp_op;
@@ -1154,7 +1191,9 @@ fn decompress_inst_rv64(dec: &mut rv_decode) {
 fn decompress_inst_rv128(dec: &mut rv_decode) {
     let decomp_op = opcode_data[dec.op as usize].decomp_rv128;
     if decomp_op != rv_op::illegal {
-        if (opcode_data[dec.op as usize].decomp_data & rvcd::imm_nz) != 0 && dec.imm == 0 {
+        if (opcode_data[dec.op as usize].decomp_data & rvcd::imm_nz) != 0
+            && dec.imm == 0
+        {
             dec.op = rv_op::illegal;
         } else {
             dec.op = decomp_op;
@@ -1165,7 +1204,11 @@ fn decompress_inst_rv128(dec: &mut rv_decode) {
 
 /* disassemble instruction */
 
-pub fn decode_inst_bytes(isa: rv_isa, pc: u64, inst: &[u8]) -> Option<rv_decode> {
+pub fn decode_inst_bytes(
+    isa: rv_isa,
+    pc: u64,
+    inst: &[u8],
+) -> Option<rv_decode> {
     let len = inst_length_first_byte(*inst.get(0)?);
     if inst.len() < len {
         None
@@ -1183,7 +1226,12 @@ pub fn decode_inst(isa: rv_isa, pc: u64, inst: rv_inst) -> rv_decode {
     decode_inst_internal(isa, pc, inst, inst_length(inst))
 }
 
-fn decode_inst_internal(isa: rv_isa, pc: u64, inst: rv_inst, len: usize) -> rv_decode {
+fn decode_inst_internal(
+    isa: rv_isa,
+    pc: u64,
+    inst: rv_inst,
+    len: usize,
+) -> rv_decode {
     let mut dec: rv_decode = rv_decode {
         pc: pc,
         inst: inst,

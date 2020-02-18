@@ -9,7 +9,9 @@ const rv_fmt_offset_rs1: &str = "O\ti(1)";
 const rv_fmt_pred_succ: &str = "O\tp,s";
 const rv_fmt_rs1_rs2: &str = "O\t1,2";
 const rv_fmt_rd_imm: &str = "O\t0,i";
+const rv_fmt_rd_ximm: &str = "O\t0,x";
 const rv_fmt_rd_offset: &str = "O\t0,o";
+const rv_fmt_rd_xoffset: &str = "O\t0,X";
 const rv_fmt_rd_rs1_rs2: &str = "O\t0,1,2";
 const rv_fmt_frd_rs1: &str = "O\t3,1";
 const rv_fmt_rd_frs1: &str = "O\t0,4";
@@ -21,10 +23,13 @@ const rv_fmt_rm_rd_frs1: &str = "O\tr,0,4";
 const rv_fmt_rm_frd_frs1_frs2: &str = "O\tr,3,4,5";
 const rv_fmt_rm_frd_frs1_frs2_frs3: &str = "O\tr,3,4,5,6";
 const rv_fmt_rd_rs1_imm: &str = "O\t0,1,i";
+const rv_fmt_rd_rs1_ximm: &str = "O\t0,1,x";
 const rv_fmt_rd_rs1_offset: &str = "O\t0,1,i";
 const rv_fmt_rd_offset_rs1: &str = "O\t0,i(1)";
 const rv_fmt_frd_offset_rs1: &str = "O\t3,i(1)";
 const rv_fmt_rd_csr_rs1: &str = "O\t0,c,1";
+const rv_fmt_csr_rs1: &str = "O\tc,1";
+const rv_fmt_rd_csr: &str = "O\t0,c";
 const rv_fmt_rd_csr_zimm: &str = "O\t0,c,7";
 const rv_fmt_rs2_offset_rs1: &str = "O\t2,i(1)";
 const rv_fmt_frs2_offset_rs1: &str = "O\t5,i(1)";
@@ -43,10 +48,9 @@ const rv_fmt_rs2_offset: &str = "O\t2,o";
 
 use types::rvc_constraint as rvcc;
 
-const rvcc_jal: &[rvcc] = &[rvcc::rd_eq_ra];
-const rvcc_jalr: &[rvcc] = &[rvcc::rd_eq_ra, rvcc::imm_eq_zero];
 const rvcc_nop: &[rvcc] = &[rvcc::rd_eq_x0, rvcc::rs1_eq_x0, rvcc::imm_eq_zero];
 const rvcc_mv: &[rvcc] = &[rvcc::imm_eq_zero];
+const rvcc_li: &[rvcc] = &[rvcc::rs1_eq_x0];
 const rvcc_not: &[rvcc] = &[rvcc::imm_eq_n1];
 const rvcc_neg: &[rvcc] = &[rvcc::rs1_eq_x0];
 const rvcc_negw: &[rvcc] = &[rvcc::rs1_eq_x0];
@@ -91,6 +95,10 @@ const rvcc_fsrm: &[rvcc] = &[rvcc::csr_eq_0x002];
 const rvcc_fsflags: &[rvcc] = &[rvcc::csr_eq_0x001];
 const rvcc_fsrmi: &[rvcc] = &[rvcc::csr_eq_0x002];
 const rvcc_fsflagsi: &[rvcc] = &[rvcc::csr_eq_0x001];
+const rvcc_csrr: &[rvcc] = &[rvcc::rs1_eq_x0];
+const rvcc_csrw: &[rvcc] = &[rvcc::rd_eq_x0];
+const rvcc_csrs: &[rvcc] = &[rvcc::rd_eq_x0];
+const rvcc_csrc: &[rvcc] = &[rvcc::rd_eq_x0];
 
 /* pseudo-instruction metadata */
 
@@ -101,10 +109,12 @@ const rvcp_jal: &[rv_comp_data] = &[
         op: rv_op::j,
         constraints: rvcc_j,
     },
+    /*
     rv_comp_data {
         op: rv_op::jal,
         constraints: rvcc_jal,
     },
+    */
 ];
 
 const rvcp_jalr: &[rv_comp_data] = &[
@@ -116,10 +126,12 @@ const rvcp_jalr: &[rv_comp_data] = &[
         op: rv_op::jr,
         constraints: rvcc_jr,
     },
+    /*
     rv_comp_data {
         op: rv_op::jalr,
         constraints: rvcc_jalr,
     },
+    */
 ];
 
 const rvcp_beq: &[rv_comp_data] = &[rv_comp_data {
@@ -176,6 +188,10 @@ const rvcp_addi: &[rv_comp_data] = &[
     rv_comp_data {
         op: rv_op::nop,
         constraints: rvcc_nop,
+    },
+    rv_comp_data {
+        op: rv_op::li,
+        constraints: rvcc_li,
     },
     rv_comp_data {
         op: rv_op::mv,
@@ -237,6 +253,10 @@ const rvcp_csrrw: &[rv_comp_data] = &[
         op: rv_op::fsflags,
         constraints: rvcc_fsflags,
     },
+    rv_comp_data {
+        op: rv_op::csrw,
+        constraints: rvcc_csrw,
+    },
 ];
 
 const rvcp_csrrs: &[rv_comp_data] = &[
@@ -276,7 +296,20 @@ const rvcp_csrrs: &[rv_comp_data] = &[
         op: rv_op::frflags,
         constraints: rvcc_frflags,
     },
+    rv_comp_data {
+        op: rv_op::csrr,
+        constraints: rvcc_csrr,
+    },
+    rv_comp_data {
+        op: rv_op::csrs,
+        constraints: rvcc_csrs,
+    },
 ];
+
+const rvcp_csrrc: &[rv_comp_data] = &[rv_comp_data {
+    op: rv_op::csrc,
+    constraints: rvcc_csrc,
+}];
 
 const rvcp_csrrwi: &[rv_comp_data] = &[
     rv_comp_data {
@@ -353,7 +386,7 @@ pub const opcode_data: &[rv_opcode_data] = &[
     rv_opcode_data {
         name: "lui",
         codec: rv_codec::u,
-        format: rv_fmt_rd_imm,
+        format: rv_fmt_rd_ximm,
         pseudo: rvcp_none,
         decomp_rv32: noop,
         decomp_rv64: noop,
@@ -363,7 +396,7 @@ pub const opcode_data: &[rv_opcode_data] = &[
     rv_opcode_data {
         name: "auipc",
         codec: rv_codec::u,
-        format: rv_fmt_rd_offset,
+        format: rv_fmt_rd_xoffset,
         pseudo: rvcp_none,
         decomp_rv32: noop,
         decomp_rv64: noop,
@@ -593,7 +626,7 @@ pub const opcode_data: &[rv_opcode_data] = &[
     rv_opcode_data {
         name: "slli",
         codec: rv_codec::i_sh7,
-        format: rv_fmt_rd_rs1_imm,
+        format: rv_fmt_rd_rs1_ximm,
         pseudo: rvcp_none,
         decomp_rv32: noop,
         decomp_rv64: noop,
@@ -603,7 +636,7 @@ pub const opcode_data: &[rv_opcode_data] = &[
     rv_opcode_data {
         name: "srli",
         codec: rv_codec::i_sh7,
-        format: rv_fmt_rd_rs1_imm,
+        format: rv_fmt_rd_rs1_ximm,
         pseudo: rvcp_none,
         decomp_rv32: noop,
         decomp_rv64: noop,
@@ -613,7 +646,7 @@ pub const opcode_data: &[rv_opcode_data] = &[
     rv_opcode_data {
         name: "srai",
         codec: rv_codec::i_sh7,
-        format: rv_fmt_rd_rs1_imm,
+        format: rv_fmt_rd_rs1_ximm,
         pseudo: rvcp_none,
         decomp_rv32: noop,
         decomp_rv64: noop,
@@ -1614,7 +1647,7 @@ pub const opcode_data: &[rv_opcode_data] = &[
         name: "csrrc",
         codec: rv_codec::i_csr,
         format: rv_fmt_rd_csr_rs1,
-        pseudo: rvcp_none,
+        pseudo: rvcp_csrrc,
         decomp_rv32: noop,
         decomp_rv64: noop,
         decomp_rv128: noop,
@@ -2733,7 +2766,7 @@ pub const opcode_data: &[rv_opcode_data] = &[
     rv_opcode_data {
         name: "c.lui",
         codec: rv_codec::ci_lui,
-        format: rv_fmt_rd_imm,
+        format: rv_fmt_rd_ximm,
         pseudo: rvcp_none,
         decomp_rv32: rv_op::lui,
         decomp_rv64: rv_op::lui,
@@ -2743,7 +2776,7 @@ pub const opcode_data: &[rv_opcode_data] = &[
     rv_opcode_data {
         name: "c.srli",
         codec: rv_codec::cb_sh6,
-        format: rv_fmt_rd_rs1_imm,
+        format: rv_fmt_rd_rs1_ximm,
         pseudo: rvcp_none,
         decomp_rv32: rv_op::srli,
         decomp_rv64: rv_op::srli,
@@ -2753,7 +2786,7 @@ pub const opcode_data: &[rv_opcode_data] = &[
     rv_opcode_data {
         name: "c.srai",
         codec: rv_codec::cb_sh6,
-        format: rv_fmt_rd_rs1_imm,
+        format: rv_fmt_rd_rs1_ximm,
         pseudo: rvcp_none,
         decomp_rv32: rv_op::srai,
         decomp_rv64: rv_op::srai,
@@ -2863,7 +2896,7 @@ pub const opcode_data: &[rv_opcode_data] = &[
     rv_opcode_data {
         name: "c.slli",
         codec: rv_codec::ci_sh6,
-        format: rv_fmt_rd_rs1_imm,
+        format: rv_fmt_rd_rs1_ximm,
         pseudo: rvcp_none,
         decomp_rv32: rv_op::slli,
         decomp_rv64: rv_op::slli,
@@ -3524,6 +3557,56 @@ pub const opcode_data: &[rv_opcode_data] = &[
         name: "fsflagsi",
         codec: rv_codec::i_csr,
         format: rv_fmt_rd_zimm,
+        pseudo: rvcp_none,
+        decomp_rv32: noop,
+        decomp_rv64: noop,
+        decomp_rv128: noop,
+        decomp_data: rvcd::none,
+    },
+    rv_opcode_data {
+        name: "li",
+        codec: rv_codec::i,
+        format: rv_fmt_rd_imm,
+        pseudo: rvcp_none,
+        decomp_rv32: noop,
+        decomp_rv64: noop,
+        decomp_rv128: noop,
+        decomp_data: rvcd::none,
+    },
+    rv_opcode_data {
+        name: "csrr",
+        codec: rv_codec::i_csr,
+        format: rv_fmt_rd_csr,
+        pseudo: rvcp_none,
+        decomp_rv32: noop,
+        decomp_rv64: noop,
+        decomp_rv128: noop,
+        decomp_data: rvcd::none,
+    },
+    rv_opcode_data {
+        name: "csrw",
+        codec: rv_codec::i_csr,
+        format: rv_fmt_csr_rs1,
+        pseudo: rvcp_none,
+        decomp_rv32: noop,
+        decomp_rv64: noop,
+        decomp_rv128: noop,
+        decomp_data: rvcd::none,
+    },
+    rv_opcode_data {
+        name: "csrs",
+        codec: rv_codec::i_csr,
+        format: rv_fmt_csr_rs1,
+        pseudo: rvcp_none,
+        decomp_rv32: noop,
+        decomp_rv64: noop,
+        decomp_rv128: noop,
+        decomp_data: rvcd::none,
+    },
+    rv_opcode_data {
+        name: "csrc",
+        codec: rv_codec::i_csr,
+        format: rv_fmt_csr_rs1,
         pseudo: rvcp_none,
         decomp_rv32: noop,
         decomp_rv64: noop,

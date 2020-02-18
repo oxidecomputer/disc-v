@@ -107,7 +107,7 @@ pub enum rv_freg {
 #[allow(non_camel_case_types)]
 pub enum rvc_constraint {
     never,
-    rd_eq_ra,
+    //rd_eq_ra,
     rd_eq_x0,
     rs1_eq_x0,
     rs2_eq_x0,
@@ -502,6 +502,11 @@ pub enum rv_op {
     fsflags = 316,
     fsrmi = 317,
     fsflagsi = 318,
+    li = 319,
+    csrr = 320,
+    csrw = 321,
+    csrs = 322,
+    csrc = 323,
 }
 
 impl rv_op {
@@ -537,6 +542,7 @@ pub struct rv_decode {
 #[allow(non_camel_case_types)]
 pub struct rv_options {
     pub reg_nicknames: bool,
+    pub resolve_offsets: bool,
 }
 
 /* Internal representations of instructions */

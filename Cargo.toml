@@ -1,6 +1,6 @@
 [package]
 name = "disc-v"
-version = "0.1.1"
-authors = ["Wladimir J. van der Laan <laanwj@gmail.com>"]
+version = "0.2.0"
+authors = ["Wladimir J. van der Laan <laanwj@gmail.com>", "Adam H. Leventhal <ahl@oxide.computer>"]
 
 [dependencies]
